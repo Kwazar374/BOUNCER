@@ -3,7 +3,7 @@ import random
 
 # pygame setup
 pygame.init()
-width, height = screen_size = (800, 500)
+width, height = screen_size = (800, 800)
 screen = pygame.display.set_mode(screen_size)
 pygame.display.set_caption('PONG BY KWAZAR374')
 icon = pygame.image.load('assets/arts/iconB.png').convert()
@@ -27,7 +27,7 @@ ball_rect = ball_surf.get_rect(center=(200, 200))
 # game variables setup:
 # paddle
 paddle_acceleration = 2
-paddle_speed = 0
+paddle_speed = paddle_start_speed = 2
 paddle_speed_limit = 10
 
 # ball
@@ -37,7 +37,7 @@ ball_angle = 0 # =========================================
 # 1 if ball flies down at a 45-degree angle to the paddle
 # 0 if ball flies perpendicular to the paddle
 # -1 if ball flies up at a 45-degree angle to the paddle
-ball_speed = 8
+ball_speed = 6
 
 # game loop
 while running:
@@ -52,25 +52,22 @@ while running:
         
     # ball (start procedure)
     if not round_active:
-        ball_start_y_pos = random.choice((random.randint(20, 90), random.randint(height-90, height-20)))
+        ball_start_y_pos = random.choice((random.randint(20, 250), random.randint(height-250, height-20)))
         ball_rect.center = (width/2, ball_start_y_pos)
         round_active = True
         ball_direction = -1
-        if ball_start_y_pos < height/2:
-            ball_angle = 1
-        else:
-            ball_angle = -1
+        ball_angle = random.choice((-1, 1))
     
     # ball (movement)
     ball_rect.x += ball_speed * ball_direction
     ball_rect.y += ball_speed * ball_angle
-    if ball_rect.x < 0 or ball_rect.x > width:
+    if ball_rect.x < -100 or ball_rect.x > width+100:
         round_active = False
 
     # player movement
     keys_pressed = pygame.key.get_pressed()
     if not (keys_pressed[pygame.K_w] or keys_pressed[pygame.K_s]):
-        paddle_speed = 0
+        paddle_speed = paddle_start_speed
     elif paddle_speed < paddle_speed_limit:
         paddle_speed += paddle_acceleration
     if keys_pressed[pygame.K_w]:
@@ -85,9 +82,10 @@ while running:
     if player_rect.colliderect(ball_rect) == True:
         collision_point = ball_rect.midleft
         ball_direction = 1
-        if collision_point[1] - player_rect.topright[1] < 20:
+        print(collision_point[1] - player_rect.topright[1])
+        if collision_point[1] - player_rect.topright[1] < 35:
             ball_angle = -1
-        elif collision_point[1] - player_rect.topright[1] < 34:
+        elif collision_point[1] - player_rect.topright[1] < 45:
             ball_angle = 0
         else:
             ball_angle = 1

@@ -15,10 +15,10 @@ running = True
 background = pygame.image.load('assets/arts/background_1.png').convert()
 
 # paddles and ball setup
-player_surf = pygame.image.load('assets/arts/paddle.png').convert()
+player_surf = pygame.image.load('assets/arts/player_paddle.png').convert()
 player_rect = player_surf.get_rect(midleft=(10, 250))
 
-enemy_surf = pygame.image.load('assets/arts/paddle.png').convert()
+enemy_surf = pygame.image.load('assets/arts/enemy_paddle.png').convert()
 enemy_rect = enemy_surf.get_rect(midright=(790, 250))
 
 ball_surf = pygame.image.load('assets/arts/ball.png').convert()
@@ -42,30 +42,6 @@ ball_speed = 7
 ball_simulated = False
 
 # methods
-# below method works more precisely when ball_speed is taken into account,
-# because collision point depend on speeds of the colliding objects
-def calculate_ball_trajectory(ball_cords, ball_dir, ball_ang):
-    if ball_ang == 0:
-        if ball_dir == -1:
-            return (26, ball_cords[1])
-        else:
-            return (783, ball_cords[1])
-    elif ball_dir == 1 and ball_ang == -1:
-        if ball_cords[1] + ball_cords[0] < 800:
-            ball_cords = (ball_cords[1] + ball_cords[0] - 5, 5)
-            ball_ang *= -1
-            return calculate_ball_trajectory(ball_cords, ball_dir, ball_ang)
-        else:
-            return (783, ball_cords[1] - (800 - ball_cords[0]) + 5)
-    elif ball_dir == 1 and ball_ang == 1:
-        if 800 - ball_cords[1] + ball_cords[0] < 800:
-            ball_cords = (800 - ball_cords[1] + ball_cords[0] - 5, 795)
-            ball_ang *= -1
-            return calculate_ball_trajectory(ball_cords, ball_dir, ball_ang)
-        else:
-            return (783, ball_cords[1] + (800 - ball_cords[0]) - 5)
-    else:
-        return 0
     
 def simulate_ball_trajectory(ball_rects, ball_dir, ball_ang, ball_sped):
     while ball_rects.right < enemy_rect.left: 
@@ -135,7 +111,7 @@ while running:
     if enemy_rect.colliderect(ball_rect) == True:
         collision_point = ball_rect.midright
         ball_direction = -1
-        if collision_point[1] - enemy_rect.topleft[1] < 33:
+        if collision_point[1] - enemy_rect.topleft[1] < 23:
             ball_angle = -1
         elif collision_point[1] - enemy_rect.topleft[1] < 47:
             ball_angle = 0

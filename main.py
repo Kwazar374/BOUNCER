@@ -38,24 +38,25 @@ ball_angle = 0 # =========================================
 # 1 if ball flies down at a 45-degree angle to the paddle
 # 0 if ball flies perpendicular to the paddle
 # -1 if ball flies up at a 45-degree angle to the paddle
-ball_speed = 6
+ball_speed = 7
+ball_simulated = False
 
 # methods
 # below method works more precisely when ball_speed is taken into account,
-# because collision points depend on speed of the ball
+# because collision point depend on speeds of the colliding objects
 def calculate_ball_trajectory(ball_cords, ball_dir, ball_ang):
     if ball_ang == 0:
         if ball_dir == -1:
             return (26, ball_cords[1])
         else:
-            return (774, ball_cords[1])
+            return (783, ball_cords[1])
     elif ball_dir == 1 and ball_ang == -1:
         if ball_cords[1] + ball_cords[0] < 800:
             ball_cords = (ball_cords[1] + ball_cords[0] - 5, 5)
             ball_ang *= -1
             return calculate_ball_trajectory(ball_cords, ball_dir, ball_ang)
         else:
-            return (774, ball_cords[1] - (800 - ball_cords[0]) + 5)
+            return (783, ball_cords[1] - (800 - ball_cords[0]) + 5)
     elif ball_dir == 1 and ball_ang == 1:
         if 800 - ball_cords[1] + ball_cords[0] < 800:
             ball_cords = (800 - ball_cords[1] + ball_cords[0] - 5, 795)
@@ -65,6 +66,14 @@ def calculate_ball_trajectory(ball_cords, ball_dir, ball_ang):
             return (783, ball_cords[1] + (800 - ball_cords[0]) - 5)
     else:
         return 0
+    
+def simulate_ball_trajectory(ball_rects, ball_dir, ball_ang, ball_sped):
+    while ball_rects.right < enemy_rect.left: 
+        ball_rects.x += ball_sped * ball_dir
+        ball_rects.y += ball_sped * ball_ang
+        if ball_rects.midtop[1] <= 0 or ball_rects.midbottom[1] >= height:
+            ball_ang *= -1
+    return ball_rects.centery
         
 
 # game loop
@@ -106,19 +115,10 @@ while running:
         if player_rect.bottom > height: player_rect.bottom = height-5
 
     # enemy movement
-    if calculate_ball_trajectory(ball_rect.center, ball_direction, ball_angle) != 0:
-        bounce_point = calculate_ball_trajectory(ball_rect.center, ball_direction, ball_angle)[1]
-        print(bounce_point, enemy_rect.centery)
-        if enemy_rect.centery in range(bounce_point-10, bounce_point+10):
-            second_paddle_speed = paddle_start_speed
-        else:
-            if second_paddle_speed < paddle_speed_limit:
-                second_paddle_speed += paddle_acceleration
-            if enemy_rect.centery < bounce_point:
-                enemy_rect.centery += second_paddle_speed
-            elif enemy_rect.centery > bounce_point:
-                enemy_rect.centery -= second_paddle_speed
-        
+    if ball_direction == 1 and not ball_simulated:
+        bounce_point  = simulate_ball_trajectory(ball_rect.copy(), ball_direction, ball_angle, ball_speed)
+        enemy_rect.centery = bounce_point
+        ball_simulated = True
 
     # collisions
     # ball with player
@@ -135,14 +135,15 @@ while running:
     if enemy_rect.colliderect(ball_rect) == True:
         collision_point = ball_rect.midright
         ball_direction = -1
-        if collision_point[1] - player_rect.topleft[1] < 33:
+        if collision_point[1] - enemy_rect.topleft[1] < 33:
             ball_angle = -1
-        elif collision_point[1] - player_rect.topleft[1] < 47:
+        elif collision_point[1] - enemy_rect.topleft[1] < 47:
             ball_angle = 0
         else:
             ball_angle = 1
+        ball_simulated = False
     # ball with walls
-    if ball_rect.midbottom[1] <= 0 or ball_rect.midbottom[1] >= height:
+    if ball_rect.midtop[1] <= 0 or ball_rect.midbottom[1] >= height:
         ball_angle *= -1
 
     # update the screen

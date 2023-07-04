@@ -28,8 +28,14 @@ ball_rect = ball_surf.get_rect(center=(200, 200))
 # paddle
 paddle_acceleration = 2
 paddle_speed = paddle_start_speed = 2
-paddle_speed_limit = 10
-second_paddle_speed = paddle_start_speed
+paddle_speed_limit = 12
+
+# enemy
+enemy_acceleration = 1
+enemy_speed = enemy_start_speed = 1
+enemy_speed_limit = 12
+reaction_counter = 0
+reaction_time = 58
 
 # ball
 round_active = False
@@ -38,7 +44,7 @@ ball_angle = 0 # =========================================
 # 1 if ball flies down at a 45-degree angle to the paddle
 # 0 if ball flies perpendicular to the paddle
 # -1 if ball flies up at a 45-degree angle to the paddle
-ball_speed = 7
+ball_speed = 9
 ball_simulated = False
 
 # methods
@@ -68,6 +74,8 @@ while running:
         ball_start_y_pos = random.choice((random.randint(20, 250), random.randint(height-250, height-20)))
         ball_rect.center = (width/2, ball_start_y_pos)
         round_active = True
+        reaction_counter = 0
+        ball_simulated = False
         ball_direction = -1
         ball_angle = random.choice((-1, 1))
     
@@ -91,19 +99,39 @@ while running:
         if player_rect.bottom > height: player_rect.bottom = height-5
 
     # enemy movement
-    if ball_direction == 1 and not ball_simulated:
-        bounce_point  = simulate_ball_trajectory(ball_rect.copy(), ball_direction, ball_angle, ball_speed)
-        enemy_rect.centery = bounce_point
-        ball_simulated = True
+    if ball_direction == 1:
+        if reaction_counter > reaction_time:
+            if not ball_simulated:
+                bounce_point  = simulate_ball_trajectory(ball_rect.copy(), ball_direction, ball_angle, ball_speed)
+                enemy_dest = bounce_point + random.choice((-20, 0, 20))
+                ball_simulated = True
+
+            if enemy_dest == enemy_rect.centery:
+                enemy_speed = enemy_start_speed
+            else:
+                if enemy_speed < enemy_speed_limit:
+                    enemy_speed += enemy_acceleration
+                if abs(enemy_dest - enemy_rect.centery) < enemy_speed:
+                    enemy_speed = enemy_start_speed
+                elif enemy_rect.bottom < height and enemy_rect.top > 0:
+                    if enemy_dest < enemy_rect.centery:
+                        enemy_rect.centery -= enemy_speed
+                    elif enemy_dest > enemy_rect.centery:
+                        enemy_rect.centery += enemy_speed
+        else:
+            reaction_counter += 1
+        
+
+        
 
     # collisions
     # ball with player
     if player_rect.colliderect(ball_rect) == True:
         collision_point = ball_rect.midleft
         ball_direction = 1
-        if collision_point[1] - player_rect.topright[1] < 33:
+        if collision_point[1] - player_rect.topright[1] < 30:
             ball_angle = -1
-        elif collision_point[1] - player_rect.topright[1] < 47:
+        elif collision_point[1] - player_rect.topright[1] < 50:
             ball_angle = 0
         else:
             ball_angle = 1
@@ -118,6 +146,7 @@ while running:
         else:
             ball_angle = 1
         ball_simulated = False
+        reaction_counter = 0
     # ball with walls
     if ball_rect.midtop[1] <= 0 or ball_rect.midbottom[1] >= height:
         ball_angle *= -1

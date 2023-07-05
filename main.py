@@ -44,6 +44,7 @@ if retro_mode_on:
     reaction_time = 58
 else:
     reaction_time = 44
+random_dest_set = False
 
 # ball
 round_active = False
@@ -140,10 +141,10 @@ while running:
         paddle_speed += paddle_acceleration
     if keys_pressed[pygame.K_w]:
         player_rect.top -= paddle_speed
-        if player_rect.top < 0: player_rect.top = 5
+        if player_rect.top < -5: player_rect.top = -5
     if keys_pressed[pygame.K_s]:
         player_rect.bottom += paddle_speed
-        if player_rect.bottom > height: player_rect.bottom = height-5
+        if player_rect.bottom > height+5: player_rect.bottom = height+5
 
     # enemy movement
     if ball_direction == 1:
@@ -185,6 +186,30 @@ while running:
                     enemy_rect.centery -= enemy_speed
                 elif enemy_dest > enemy_rect.centery:
                     enemy_rect.centery += enemy_speed
+    else:
+        if not random_dest_set:
+            enemy_dest = random.choice((0, 1))
+            if enemy_rect.centery > 3 * height/4 and enemy_dest == 1:
+                enemy_dest = random.randint(300, 600)
+            elif enemy_rect.centery < height/4 and enemy_dest == 1:
+                enemy_dest = random.randint(200, 500)
+            else:
+                enemy_dest = 0
+            random_dest_set = True
+        if enemy_dest != 0:
+            if enemy_dest == enemy_rect.centery:
+                enemy_speed = enemy_start_speed
+            else:
+                if enemy_speed < enemy_speed_limit:
+                    enemy_speed += enemy_acceleration
+                if abs(enemy_dest - enemy_rect.centery) < enemy_speed:
+                    enemy_speed = enemy_start_speed
+                else:
+                    if enemy_dest < enemy_rect.centery:
+                        enemy_rect.centery -= enemy_speed
+                    elif enemy_dest > enemy_rect.centery:
+                        enemy_rect.centery += enemy_speed
+                
 
         
 
@@ -212,6 +237,7 @@ while running:
         first_bounce = False
     # ball with enemy
     if enemy_rect.colliderect(ball_rect) == True:
+        random_dest_set = False
         if retro_mode_on:
             collision_point = ball_rect.midright
             ball_direction = -1

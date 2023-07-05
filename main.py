@@ -190,9 +190,9 @@ while running:
         if not random_dest_set:
             enemy_dest = random.choice((0, 1))
             if enemy_rect.centery > 3 * height/4 and enemy_dest == 1:
-                enemy_dest = random.randint(300, 600)
+                enemy_dest = random.randint(450, 600)
             elif enemy_rect.centery < height/4 and enemy_dest == 1:
-                enemy_dest = random.randint(200, 500)
+                enemy_dest = random.randint(200, 350)
             else:
                 enemy_dest = 0
             random_dest_set = True

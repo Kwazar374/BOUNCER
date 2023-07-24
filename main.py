@@ -28,6 +28,9 @@ enemy_rect = enemy_surf.get_rect(midright=(790, height/2))
 ball_surf = pygame.image.load('assets/arts/ball.png').convert()
 ball_rect = ball_surf.get_rect(center=(200, 200))
 
+# boosts setup
+right_boost_surf = pygame.image.load('assets/arts/boost_right.png').convert()
+
 # game variables setup:
 
 # gamemode
@@ -36,6 +39,7 @@ retro_mode_on = False
 # score
 player_score = 0
 enemy_score = 0
+color_counter = 100
 
 # paddle
 paddle_acceleration = 2
@@ -108,6 +112,8 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            print(event.pos)
         
     # ball (start procedure)
     if not round_active:
@@ -285,9 +291,17 @@ while running:
                 last_wall_collision = pygame.time.get_ticks()
 
     # score
-    score_text_left = score_font.render(str(player_score), False, 'white')
+    if ball_rect.top < 300:
+        color = f'grey{color_counter}'
+        if color_counter > 10:
+            color_counter -= 1
+    else:
+        if color_counter < 100:
+            color_counter += 1
+        color = f'grey{color_counter}'
+    score_text_left = score_font.render(str(player_score), False, color)
     score_text_left_rect = score_text_left.get_rect(midright = (380, 100))
-    score_text_right = score_font.render(str(enemy_score), False, 'white')
+    score_text_right = score_font.render(str(enemy_score), False, color)
     score_text_right_rect = score_text_right.get_rect(midleft = (440, 100))
 
     # update the screen

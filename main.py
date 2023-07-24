@@ -12,6 +12,9 @@ pygame.display.set_icon(icon)
 clock = pygame.time.Clock()
 running = True
 
+# font setup
+score_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 120)
+
 # background setup
 background = pygame.image.load('assets/arts/background_1.png').convert()
 
@@ -29,6 +32,10 @@ ball_rect = ball_surf.get_rect(center=(200, 200))
 
 # gamemode
 retro_mode_on = False
+
+# score
+player_score = 0
+enemy_score = 0
 
 # paddle
 paddle_acceleration = 2
@@ -117,8 +124,12 @@ while running:
     if retro_mode_on:
         ball_rect.x += ball_speed * ball_direction
         ball_rect.y += ball_speed * ball_angle
-        if ball_rect.x < -100 or ball_rect.x > width+100:
+        if ball_rect.x < -100:
             round_active = False
+            if not first_bounce: enemy_score += 1
+        elif ball_rect.x > width+100:
+            round_active = False
+            player_score += 1
     else:
         if ball_angle in (-1, 1):
             ball_rect.x += (ball_speed * math.sqrt(2) / 2) * ball_direction
@@ -128,8 +139,12 @@ while running:
         elif ball_angle in (-0.5, 0.5):
             ball_rect.x += (ball_speed * math.sqrt(3) / 2) * ball_direction
             ball_rect.y += (ball_speed / 2) * int(ball_angle/0.5)
-        if ball_rect.x < -100 or ball_rect.x > width+100:
+        if ball_rect.x < -100:
             round_active = False
+            if not first_bounce: enemy_score += 1
+        elif ball_rect.x > width+100:
+            round_active = False
+            player_score += 1
 
 
 
@@ -269,11 +284,18 @@ while running:
                 ball_angle *= -1
                 last_wall_collision = pygame.time.get_ticks()
 
+    # score
+    score_text_left = score_font.render(str(player_score), False, 'white')
+    score_text_left_rect = score_text_left.get_rect(midright = (380, 100))
+    score_text_right = score_font.render(str(enemy_score), False, 'white')
+    score_text_right_rect = score_text_right.get_rect(midleft = (440, 100))
 
     # update the screen
     screen.blit(background, (0, 0))
     screen.blit(player_surf, player_rect)
     screen.blit(enemy_surf, enemy_rect)
+    screen.blit(score_text_left, score_text_left_rect)
+    screen.blit(score_text_right, score_text_right_rect)
     screen.blit(ball_surf, ball_rect)
 
     pygame.display.update()

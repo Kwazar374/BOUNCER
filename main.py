@@ -150,13 +150,10 @@ while running:
             right_boost_surf = bounce_boost_used_surf
             if random.choice((False, False, True)):
                 reaction_time = random.randint(lower_reaction_time-5, upper_reaction_time-32)
-                print('hard')
             elif random.choice((False, True)):
                 reaction_time = random.randint(lower_reaction_time+5, upper_reaction_time-16)
-                print('medium')
             else:
                 reaction_time = random.randint(lower_reaction_time+25, upper_reaction_time-8)
-                print('easy')
 
     # ball (start procedure)
     if not round_active:
@@ -333,8 +330,8 @@ while running:
         if bounce_boost_activated and bounce_boost_used:
             bounce_boost_activated = False
             ball_speed -= bounce_boost_value
-        if enemy_rect.centery < 100 or enemy_rect.centery > 700:
-            reaction_time = random.randint(lower_reaction_time, upper_reaction_time-8)
+        if enemy_rect.centery < 300 or enemy_rect.centery > 500:
+            reaction_time = random.randint(lower_reaction_time, upper_reaction_time-random.randint(6, 12))
         else:
             reaction_time = random.randint(lower_reaction_time+10, upper_reaction_time)
     # ball with walls

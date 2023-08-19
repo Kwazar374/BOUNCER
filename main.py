@@ -388,7 +388,10 @@ while running:
         bounce_counter_text_color = 'dodgerblue2'
     else:
         bounce_counter_text_color = 'white'
-    bounce_counter_text = bounce_counter_font.render("Level " + str(math.floor(ball_speed-9)), False, bounce_counter_text_color)
+    if bounce_boost_activated:
+        pass
+    else:
+        bounce_counter_text = bounce_counter_font.render("Speed " + str(math.floor(ball_speed-9)), False, bounce_counter_text_color)
     bounce_counter_text_rect = bounce_counter_text.get_rect(midright = (795, 786))
 
     # level 

@@ -39,8 +39,14 @@ bounce_boost_frames.append(right_boost_surf)
 bounce_boost_used_surf = pygame.image.load('assets/arts/boost_right_used.png')
 bounce_boost_frame = 0
 
+# pause setup
+pause_surf = pygame.image.load('assets/arts/pause_button.png').convert()
+pause_rect = pause_surf.get_rect(topright=(795, 5))
+show_pause_button = True
+
 # game variables setup:
 
+game_paused = False
 
 # gamemode
 retro_mode_on = False # not stable
@@ -93,9 +99,11 @@ bounce_boost_update_cooldown = 1500  # in milliseconds
 
 # userevents
 bounce_boost_update = pygame.USEREVENT + 1
+pause_event = pygame.USEREVENT + 2
 
 # timers
 pygame.time.set_timer(bounce_boost_update, bounce_boost_update_cooldown)
+pygame.time.set_timer(pause_event, 700)
 
 # methods
     
@@ -161,215 +169,220 @@ while running:
                     reaction_time = random.randint(lower_reaction_time+5, upper_reaction_time-16)
                 else:
                     reaction_time = random.randint(lower_reaction_time+25, upper_reaction_time-8)
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+            game_paused = not game_paused
+        if event.type == pause_event:
+            show_pause_button = not show_pause_button
 
-    # ball (start procedure)
-    if not round_active:
-        ball_start_y_pos = random.choice((random.randint(20, 250), random.randint(height-250, height-20)))
-        ball_rect.center = (width/2, ball_start_y_pos)
-        round_active = True
-        reaction_counter = 0
-        first_bounce = True
-        ball_simulated = False
-        ball_direction = -1
-        ball_angle = random.choice((-1, 1))
-        if bounce_boost_activated and bounce_boost_used:
-            ball_speed -= bounce_boost_value
-            bounce_boost_activated = False
-        reaction_time = 30
-        ball_speed = ball_starting_speed
-        bounce_counter = 0
-    
-    # ball (movement)
-    if retro_mode_on:
-        ball_rect.x += ball_speed * ball_direction
-        ball_rect.y += ball_speed * ball_angle
-        if ball_rect.x < -100:
-            round_active = False
-            if not first_bounce: enemy_score += 1
-        elif ball_rect.x > width+100:
-            round_active = False
-            player_score += 1
-            last_score_by_player = False
-    else:
-        if ball_angle in (-1, 1):
-            ball_rect.x += (ball_speed * math.sqrt(2) / 2) * ball_direction
-            ball_rect.y += (ball_speed * math.sqrt(2) / 2) * ball_angle
-        elif ball_angle == 0:
-            ball_rect.x += ball_speed * ball_direction
-        elif ball_angle in (-0.5, 0.5):
-            ball_rect.x += (ball_speed * math.sqrt(3) / 2) * ball_direction
-            ball_rect.y += (ball_speed / 2) * int(ball_angle/0.5)
-        if ball_rect.x < -100:
-            round_active = False
-            if not first_bounce: enemy_score += 1
-        elif ball_rect.x > width+100:
-            round_active = False
-            player_score += 1
-            last_score_by_player = True
-
-
-
-    # player movement
-    keys_pressed = pygame.key.get_pressed()
-    if not (keys_pressed[pygame.K_w] or keys_pressed[pygame.K_s]):
-        paddle_speed = paddle_start_speed
-    elif paddle_speed < paddle_speed_limit:
-        paddle_speed += paddle_acceleration
-    if keys_pressed[pygame.K_w]:
-        player_rect.top -= paddle_speed
-        if player_rect.top < -5: player_rect.top = -5
-    if keys_pressed[pygame.K_s]:
-        player_rect.bottom += paddle_speed
-        if player_rect.bottom > height+5: player_rect.bottom = height+5
-
-    # enemy movement
-    if ball_direction == 1:
-        if reaction_counter > reaction_time:
-            if not ball_simulated:
-                bounce_point  = simulate_ball_trajectory(ball_rect.copy(), ball_direction, ball_angle, ball_speed)
-                enemy_dest = bounce_point + random.choice((-20, 0, 20))
-                if enemy_dest + enemy_rect.height//2 > height - 5:
-                    enemy_dest -= enemy_dest + enemy_rect.height//2 - height + 5
-                elif enemy_dest - enemy_rect.height//2 < 5:
-                    enemy_dest += enemy_rect.height//2 - enemy_dest + 5
-                ball_simulated = True
-
-            if enemy_dest == enemy_rect.centery:
-                enemy_speed = enemy_start_speed
-            else:
-                if enemy_speed < enemy_speed_limit:
-                    enemy_speed += enemy_acceleration
-                if abs(enemy_dest - enemy_rect.centery) < enemy_speed:
-                    enemy_speed = enemy_start_speed
-                else:
-                    if enemy_dest < enemy_rect.centery:
-                        enemy_rect.centery -= enemy_speed
-                    elif enemy_dest > enemy_rect.centery:
-                        enemy_rect.centery += enemy_speed
-        else:
-            reaction_counter += 1
-    elif first_bounce:
-        enemy_dest = height/2
-        if enemy_dest == enemy_rect.centery:
-            enemy_speed = enemy_start_speed
-        else:
-            if enemy_speed < enemy_speed_limit:
-                enemy_speed += enemy_acceleration
-            if abs(enemy_dest - enemy_rect.centery) < enemy_speed:
-                enemy_speed = enemy_start_speed
-            else:
-                if enemy_dest < enemy_rect.centery:
-                    enemy_rect.centery -= enemy_speed
-                elif enemy_dest > enemy_rect.centery:
-                    enemy_rect.centery += enemy_speed
-    else:
-        if not random_dest_set:
-            enemy_dest = random.choice((0, 1, 1))
-            if enemy_rect.centery > 3 * height/4 and enemy_dest == 1:
-                enemy_dest = random.randint(450, 650)
-            elif enemy_rect.centery < height/4 and enemy_dest == 1:
-                enemy_dest = random.randint(150, 350)
-            else:
-                enemy_dest = 0
-            random_dest_set = True
-        if enemy_dest != 0:
-            if enemy_dest == enemy_rect.centery:
-                enemy_speed = enemy_start_speed
-            else:
-                if enemy_speed < enemy_speed_limit:
-                    enemy_speed += enemy_acceleration
-                if abs(enemy_dest - enemy_rect.centery) < enemy_speed:
-                    enemy_speed = enemy_start_speed
-                else:
-                    if enemy_dest < enemy_rect.centery:
-                        enemy_rect.centery -= enemy_speed
-                    elif enemy_dest > enemy_rect.centery:
-                        enemy_rect.centery += enemy_speed
-                
-
+    if not game_paused:
+        # ball (start procedure)
+        if not round_active:
+            ball_start_y_pos = random.choice((random.randint(20, 250), random.randint(height-250, height-20)))
+            ball_rect.center = (width/2, ball_start_y_pos)
+            round_active = True
+            reaction_counter = 0
+            first_bounce = True
+            ball_simulated = False
+            ball_direction = -1
+            ball_angle = random.choice((-1, 1))
+            if bounce_boost_activated and bounce_boost_used:
+                ball_speed -= bounce_boost_value
+                bounce_boost_activated = False
+            reaction_time = 30
+            ball_speed = ball_starting_speed
+            bounce_counter = 0
         
+        # ball (movement)
+        if retro_mode_on:
+            ball_rect.x += ball_speed * ball_direction
+            ball_rect.y += ball_speed * ball_angle
+            if ball_rect.x < -100:
+                round_active = False
+                if not first_bounce: enemy_score += 1
+            elif ball_rect.x > width+100:
+                round_active = False
+                player_score += 1
+                last_score_by_player = False
+        else:
+            if ball_angle in (-1, 1):
+                ball_rect.x += (ball_speed * math.sqrt(2) / 2) * ball_direction
+                ball_rect.y += (ball_speed * math.sqrt(2) / 2) * ball_angle
+            elif ball_angle == 0:
+                ball_rect.x += ball_speed * ball_direction
+            elif ball_angle in (-0.5, 0.5):
+                ball_rect.x += (ball_speed * math.sqrt(3) / 2) * ball_direction
+                ball_rect.y += (ball_speed / 2) * int(ball_angle/0.5)
+            if ball_rect.x < -100:
+                round_active = False
+                if not first_bounce: enemy_score += 1
+            elif ball_rect.x > width+100:
+                round_active = False
+                player_score += 1
+                last_score_by_player = True
 
-    # collisions
-    # ball with player
-    if player_rect.colliderect(ball_rect) == True:
-        if retro_mode_on:
-            collision_point = ball_rect.midleft
-            ball_direction = 1
-            if collision_point[1] - player_rect.topright[1] < 30:
-                ball_angle = -1
-            elif collision_point[1] - player_rect.topright[1] < 50:
-                ball_angle = 0
-            else:
-                ball_angle = 1
-        else:
-            collision_point = ball_rect.midleft
-            ball_direction = 1
-            if collision_point[1] - player_rect.topright[1] < 30:
-                ball_angle = -0.5
-            elif collision_point[1] - player_rect.topright[1] < 50:
-                ball_angle = 0
-            else:
-                ball_angle = 0.5
-        first_bounce = False
-        if bounce_boost_activated:
-            ball_speed += bounce_boost_value
-            bounce_boost_used = True
-            bounce_boost_ready = False
-        if ball_speed < 17:
-            ball_speed += 0.15
-        bounce_counter += 1
-    # ball with enemy
-    if enemy_rect.colliderect(ball_rect) == True:
-        random_dest_set = False
-        if retro_mode_on:
-            collision_point = ball_rect.midright
-            ball_direction = -1
-            if collision_point[1] - enemy_rect.topleft[1] < 23:
-                ball_angle = -1
-            elif collision_point[1] - enemy_rect.topleft[1] < 47:
-                ball_angle = 0
-            else:
-                ball_angle = 1
-        else:
-            collision_point = ball_rect.midright
-            ball_direction = -1
-            if collision_point[1] - enemy_rect.topleft[1] < 23:
-                ball_angle = -0.5
-            elif collision_point[1] - enemy_rect.topleft[1] < 47:
-                ball_angle = 0
-            else:
-                ball_angle = 0.5
-        ball_simulated = False
-        reaction_counter = 0
-        if bounce_boost_activated and bounce_boost_used:
-            bounce_boost_activated = False
-            ball_speed -= bounce_boost_value
 
-        speed_bonus = math.floor(ball_speed - ball_starting_speed) * 8
-        if speed_bonus > 30:
-            speed_bonus = 30
-        if bounce_counter < 8 and last_score_by_player:
-            reaction_time = 10
-        elif bounce_counter < 6:
-            reaction_time = 20
-        else:
-            if enemy_rect.centery < 300 or enemy_rect.centery > 500:
-                reaction_time = random.randint(math.floor(lower_reaction_time - (speed_bonus+10)/4), upper_reaction_time-random.randint(6, 12)-speed_bonus)
+
+        # player movement
+        keys_pressed = pygame.key.get_pressed()
+        if not (keys_pressed[pygame.K_w] or keys_pressed[pygame.K_s]):
+            paddle_speed = paddle_start_speed
+        elif paddle_speed < paddle_speed_limit:
+            paddle_speed += paddle_acceleration
+        if keys_pressed[pygame.K_w]:
+            player_rect.top -= paddle_speed
+            if player_rect.top < -5: player_rect.top = -5
+        if keys_pressed[pygame.K_s]:
+            player_rect.bottom += paddle_speed
+            if player_rect.bottom > height+5: player_rect.bottom = height+5
+
+        # enemy movement
+        if ball_direction == 1:
+            if reaction_counter > reaction_time:
+                if not ball_simulated:
+                    bounce_point  = simulate_ball_trajectory(ball_rect.copy(), ball_direction, ball_angle, ball_speed)
+                    enemy_dest = bounce_point + random.choice((-20, 0, 20))
+                    if enemy_dest + enemy_rect.height//2 > height - 5:
+                        enemy_dest -= enemy_dest + enemy_rect.height//2 - height + 5
+                    elif enemy_dest - enemy_rect.height//2 < 5:
+                        enemy_dest += enemy_rect.height//2 - enemy_dest + 5
+                    ball_simulated = True
+
+                if enemy_dest == enemy_rect.centery:
+                    enemy_speed = enemy_start_speed
+                else:
+                    if enemy_speed < enemy_speed_limit:
+                        enemy_speed += enemy_acceleration
+                    if abs(enemy_dest - enemy_rect.centery) < enemy_speed:
+                        enemy_speed = enemy_start_speed
+                    else:
+                        if enemy_dest < enemy_rect.centery:
+                            enemy_rect.centery -= enemy_speed
+                        elif enemy_dest > enemy_rect.centery:
+                            enemy_rect.centery += enemy_speed
             else:
-                reaction_time = random.randint(math.floor(lower_reaction_time+10 - (speed_bonus+10)/2), upper_reaction_time-speed_bonus)
-        if ball_speed < 17:
-            ball_speed += 0.15
-        bounce_counter += 1
-    # ball with walls
-    if ball_rect.midtop[1] <= 0 or ball_rect.midbottom[1] >= height:
-        if retro_mode_on:
-            ball_angle *= -1
+                reaction_counter += 1
+        elif first_bounce:
+            enemy_dest = height/2
+            if enemy_dest == enemy_rect.centery:
+                enemy_speed = enemy_start_speed
+            else:
+                if enemy_speed < enemy_speed_limit:
+                    enemy_speed += enemy_acceleration
+                if abs(enemy_dest - enemy_rect.centery) < enemy_speed:
+                    enemy_speed = enemy_start_speed
+                else:
+                    if enemy_dest < enemy_rect.centery:
+                        enemy_rect.centery -= enemy_speed
+                    elif enemy_dest > enemy_rect.centery:
+                        enemy_rect.centery += enemy_speed
         else:
-            # in some specific cases wall-ball collision procedure was called several times 
-            # in short time intervals and it was resulting in ball glitches
-            if last_wall_collision == -1 or pygame.time.get_ticks() - last_wall_collision > 20:
+            if not random_dest_set:
+                enemy_dest = random.choice((0, 1, 1))
+                if enemy_rect.centery > 3 * height/4 and enemy_dest == 1:
+                    enemy_dest = random.randint(450, 650)
+                elif enemy_rect.centery < height/4 and enemy_dest == 1:
+                    enemy_dest = random.randint(150, 350)
+                else:
+                    enemy_dest = 0
+                random_dest_set = True
+            if enemy_dest != 0:
+                if enemy_dest == enemy_rect.centery:
+                    enemy_speed = enemy_start_speed
+                else:
+                    if enemy_speed < enemy_speed_limit:
+                        enemy_speed += enemy_acceleration
+                    if abs(enemy_dest - enemy_rect.centery) < enemy_speed:
+                        enemy_speed = enemy_start_speed
+                    else:
+                        if enemy_dest < enemy_rect.centery:
+                            enemy_rect.centery -= enemy_speed
+                        elif enemy_dest > enemy_rect.centery:
+                            enemy_rect.centery += enemy_speed
+                    
+
+            
+
+        # collisions
+        # ball with player
+        if player_rect.colliderect(ball_rect) == True:
+            if retro_mode_on:
+                collision_point = ball_rect.midleft
+                ball_direction = 1
+                if collision_point[1] - player_rect.topright[1] < 30:
+                    ball_angle = -1
+                elif collision_point[1] - player_rect.topright[1] < 50:
+                    ball_angle = 0
+                else:
+                    ball_angle = 1
+            else:
+                collision_point = ball_rect.midleft
+                ball_direction = 1
+                if collision_point[1] - player_rect.topright[1] < 30:
+                    ball_angle = -0.5
+                elif collision_point[1] - player_rect.topright[1] < 50:
+                    ball_angle = 0
+                else:
+                    ball_angle = 0.5
+            first_bounce = False
+            if bounce_boost_activated:
+                ball_speed += bounce_boost_value
+                bounce_boost_used = True
+                bounce_boost_ready = False
+            if ball_speed < 17:
+                ball_speed += 0.15
+            bounce_counter += 1
+        # ball with enemy
+        if enemy_rect.colliderect(ball_rect) == True:
+            random_dest_set = False
+            if retro_mode_on:
+                collision_point = ball_rect.midright
+                ball_direction = -1
+                if collision_point[1] - enemy_rect.topleft[1] < 23:
+                    ball_angle = -1
+                elif collision_point[1] - enemy_rect.topleft[1] < 47:
+                    ball_angle = 0
+                else:
+                    ball_angle = 1
+            else:
+                collision_point = ball_rect.midright
+                ball_direction = -1
+                if collision_point[1] - enemy_rect.topleft[1] < 23:
+                    ball_angle = -0.5
+                elif collision_point[1] - enemy_rect.topleft[1] < 47:
+                    ball_angle = 0
+                else:
+                    ball_angle = 0.5
+            ball_simulated = False
+            reaction_counter = 0
+            if bounce_boost_activated and bounce_boost_used:
+                bounce_boost_activated = False
+                ball_speed -= bounce_boost_value
+
+            speed_bonus = math.floor(ball_speed - ball_starting_speed) * 8
+            if speed_bonus > 30:
+                speed_bonus = 30
+            if bounce_counter < 8 and last_score_by_player:
+                reaction_time = 10
+            elif bounce_counter < 6:
+                reaction_time = 20
+            else:
+                if enemy_rect.centery < 300 or enemy_rect.centery > 500:
+                    reaction_time = random.randint(math.floor(lower_reaction_time - (speed_bonus+10)/4), upper_reaction_time-random.randint(6, 12)-speed_bonus)
+                else:
+                    reaction_time = random.randint(math.floor(lower_reaction_time+10 - (speed_bonus+10)/2), upper_reaction_time-speed_bonus)
+            if ball_speed < 17:
+                ball_speed += 0.15
+            bounce_counter += 1
+        # ball with walls
+        if ball_rect.midtop[1] <= 0 or ball_rect.midbottom[1] >= height:
+            if retro_mode_on:
                 ball_angle *= -1
-                last_wall_collision = pygame.time.get_ticks()
+            else:
+                # in some specific cases wall-ball collision procedure was called several times 
+                # in short time intervals and it was resulting in ball glitches
+                if last_wall_collision == -1 or pygame.time.get_ticks() - last_wall_collision > 20:
+                    ball_angle *= -1
+                    last_wall_collision = pygame.time.get_ticks()
 
     # score
     if ball_rect.top < 250:
@@ -407,6 +420,8 @@ while running:
         screen.blit(bounce_counter_text, bounce_counter_text_rect)
     screen.blit(score_text_right, score_text_right_rect)
     screen.blit(ball_surf, ball_rect)
+    if game_paused and show_pause_button:
+        screen.blit(pause_surf, pause_rect)
 
     pygame.display.update()
     

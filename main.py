@@ -15,6 +15,7 @@ running = True
 # font setup
 score_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 120)
 bounce_counter_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 20)
+game_menu_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 60)
 
 # background setup
 background = pygame.image.load('assets/arts/background_1.png').convert()
@@ -44,66 +45,8 @@ pause_surf = pygame.image.load('assets/arts/pause_button.png').convert()
 pause_rect = pause_surf.get_rect(topright=(795, 5))
 show_pause_button = True
 
-# game variables setup:
-
-game_paused = False
-
-# gamemode
-retro_mode_on = False # not stable
-
-# score
-player_score = 0
-enemy_score = 0
-color_counter = 100
-last_score_by_player = False
-
-# paddle
-paddle_acceleration = 2
-paddle_speed = paddle_start_speed = 2
-paddle_speed_limit = 12
-
-# enemy
-enemy_acceleration = 1
-enemy_speed = enemy_start_speed = 1
-enemy_speed_limit = 12
-reaction_counter = 0
-if retro_mode_on:
-    upper_reaction_time = 62
-    lower_reaction_time = 48
-else:
-    upper_reaction_time = 52
-    lower_reaction_time = 10
-reaction_time = lower_reaction_time
-random_dest_set = False
-
-# ball
-round_active = False
-ball_direction = -1 # -1 if ball goes left and 1 if ball goes right
-ball_angle = 0 # =========================================
-# 1 if ball flies down at a 45-degree angle to the paddle
-# (non-retro mode) 0.5 if ball flies down at a 60-degree angle to the paddle
-# 0 if ball flies perpendicular to the paddle
-# (non-retro mode) -0.5 if ball flies up at a 60-degree angle to the paddle
-# -1 if ball flies up at a 45-degree angle to the paddle
-ball_starting_speed = 10
-ball_speed = ball_starting_speed
-ball_simulated = False
-last_wall_collision = -1
-
-# bounce boost setup (2/2)
-bounce_boost_ready = True
-bounce_boost_activated = False
-bounce_boost_used = True
-bounce_boost_value = 3
-bounce_boost_update_cooldown = 1500  # in milliseconds
-
-# userevents
-bounce_boost_update = pygame.USEREVENT + 1
-pause_event = pygame.USEREVENT + 2
-
-# timers
-pygame.time.set_timer(bounce_boost_update, bounce_boost_update_cooldown)
-pygame.time.set_timer(pause_event, 700)
+# game restart setup
+game_restart = True
 
 # methods
     
@@ -136,16 +79,122 @@ def simulate_ball_trajectory(ball_rects, ball_dir, ball_ang, ball_sped):
                     ball_ang *= -1
                     last_wall_collision_counter = 0
         return ball_rects.centery
+    
+def game_menu():
+    game_menu_active = True
+    global running
+    global game_paused
+    global round_active
+    global game_restart
+    
+    while game_menu_active:
+        
+        restart_button_text = game_menu_font.render('RESTART', False, 'white')
+        restart_rect_col = 'black'
+        restart_button_rect = restart_button_text.get_rect(midleft=(200, 250))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game_menu_active = False
+                running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                game_menu_active = False
+                game_paused = True
+                pygame.time.set_timer(pause_event, 700)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if restart_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                    game_menu_active = False
+                    game_restart = True
+        
+
+        if restart_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+            restart_button_text = game_menu_font.render('RESTART', False, 'black')
+            restart_rect_col = 'white'
+        restart_button_rect_to_display = pygame.Rect.inflate(restart_button_rect, 15, 15)
+        restart_button_rect_to_display = restart_button_rect_to_display.move(-5, -3)
+
+        screen.fill('black')
+        pygame.draw.rect(screen, restart_rect_col, restart_button_rect_to_display, )
+        screen.blit(restart_button_text, restart_button_rect)
+
+        pygame.display.update()
 
 # game loop
 while running:
+    # game variables setup:
+    if game_restart:
+        game_paused = False
+
+        # gamemode
+        retro_mode_on = False # not stable
+
+        # score
+        player_score = 0
+        enemy_score = 0
+        color_counter = 100
+        last_score_by_player = False
+
+        # paddle
+        paddle_acceleration = 2
+        paddle_speed = paddle_start_speed = 2
+        paddle_speed_limit = 12
+
+        # enemy
+        enemy_acceleration = 1
+        enemy_speed = enemy_start_speed = 1
+        enemy_speed_limit = 12
+        reaction_counter = 0
+        if retro_mode_on:
+            upper_reaction_time = 62
+            lower_reaction_time = 48
+        else:
+            upper_reaction_time = 52
+            lower_reaction_time = 10
+        reaction_time = lower_reaction_time
+        random_dest_set = False
+
+        # ball
+        round_active = False
+        ball_direction = -1 # -1 if ball goes left and 1 if ball goes right
+        ball_angle = 0 # =========================================
+        # 1 if ball flies down at a 45-degree angle to the paddle
+        # (non-retro mode) 0.5 if ball flies down at a 60-degree angle to the paddle
+        # 0 if ball flies perpendicular to the paddle
+        # (non-retro mode) -0.5 if ball flies up at a 60-degree angle to the paddle
+        # -1 if ball flies up at a 45-degree angle to the paddle
+        ball_starting_speed = 10
+        ball_speed = ball_starting_speed
+        ball_simulated = False
+        last_wall_collision = -1
+
+        # bounce boost setup (2/2)
+        bounce_boost_ready = True
+        bounce_boost_activated = False
+        bounce_boost_used = True
+        bounce_boost_value = 3
+        bounce_boost_update_cooldown = 1500  # in milliseconds
+
+        # userevents
+        bounce_boost_update = pygame.USEREVENT + 1
+        pause_event = pygame.USEREVENT + 2
+
+        # timers
+        pygame.time.set_timer(bounce_boost_update, bounce_boost_update_cooldown)
+
+        # bounce boost surface
+        right_boost_surf = bounce_boost_frames[17]
+        bounce_boost_frame = 0
+
+        game_restart = False
+
+    
     #event loop
     for event in pygame.event.get():
         # window actions
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            running = False
+            game_menu()
         if event.type == bounce_boost_update:
             if not bounce_boost_ready:
                 right_boost_surf = bounce_boost_frames[bounce_boost_frame]
@@ -171,8 +220,12 @@ while running:
                     reaction_time = random.randint(lower_reaction_time+25, upper_reaction_time-8)
         if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
             game_paused = not game_paused
+            pygame.time.set_timer(pause_event, 700)
+            show_pause_button = True
         if event.type == pause_event:
             show_pause_button = not show_pause_button
+    if not running:
+        break
 
     if not game_paused:
         # ball (start procedure)

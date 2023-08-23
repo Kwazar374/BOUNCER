@@ -6,7 +6,7 @@ import math
 pygame.init()
 width, height = screen_size = (800, 800)
 screen = pygame.display.set_mode(screen_size)
-pygame.display.set_caption('PONG BY KWAZAR374')
+pygame.display.set_caption('BOUNCER BY KWAZAR374')
 icon = pygame.image.load('assets/arts/iconB.png').convert()
 pygame.display.set_icon(icon)
 clock = pygame.time.Clock()
@@ -17,7 +17,9 @@ score_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 120)
 bounce_counter_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 20)
 game_menu_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 60)
 main_menu_font_p = pygame.font.Font('assets/fonts/bit5x5.ttf', 50)
-main_menu_font_h = pygame.font.Font('assets/fonts/bit5x5.ttf', 150)
+main_menu_font_h = pygame.font.Font('assets/fonts/bit5x5.ttf', 140)
+credits_font = pygame.font.Font('assets/fonts/bit5x5.ttf', 30)
+credits_header_font = pygame.font.Font('assets/fonts/bit5x5.ttf', 70)
 
 # background setup
 background = pygame.image.load('assets/arts/background_1.png').convert()
@@ -49,6 +51,9 @@ show_pause_button = True
 
 # game restart setup
 game_restart = True
+
+# menu variables setup:
+main_menu_active = False
 
 # methods
     
@@ -83,12 +88,14 @@ def simulate_ball_trajectory(ball_rects, ball_dir, ball_ang, ball_sped):
         return ball_rects.centery
 
 def main_menu():
-    main_menu_active = True
+    global main_menu_active
     global running
     global game_restart
 
-    main_menu_header_text = main_menu_font_h.render('PONG', False, 'white')
-    main_menu_header_rect = main_menu_header_text.get_rect(midleft=(40, 90))
+    main_menu_active = True
+
+    main_menu_header_text = main_menu_font_h.render('BOUNCER', False, 'white')
+    main_menu_header_rect = main_menu_header_text.get_rect(midleft=(30, 95))
 
     main_menu_rect = pygame.rect.Rect(30, 195, 20, 260)
 
@@ -117,7 +124,7 @@ def main_menu():
                 if play_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
                     main_menu_active = False
                 if credits_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
-                    pass
+                    credits()
                 if exit_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
                     main_menu_active = False
                     running = False
@@ -152,6 +159,72 @@ def main_menu():
             screen.blit(exit_button_text, exit_rect)
 
             pygame.display.update()
+
+def credits():
+    credits_active = True
+    global running
+    global main_menu_active
+    global icon
+
+    credits_header_text = credits_header_font.render('Credits', False, 'white')
+    credits_header_rect = credits_header_text.get_rect(midleft=(25, 90))
+
+    icon_surf = icon
+    icon_rect = icon_surf.get_rect(midleft=(60, 500))
+
+    credits_rect = pygame.rect.Rect(25, 186, 15, 550)
+
+    credits_lines = [
+        'Code, Art:     Kwazar374',
+        'Fonts:     www.mattlag.com/bitfonts/',
+        'Inspiration:   Atari Pong from 1972'
+    ]
+
+    while credits_active:
+
+        back_button_text = main_menu_font_p.render('BACK', False, 'white')
+        back_rect_col = 'black'
+        back_button_rect = back_button_text.get_rect(midleft=(60, 700))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                main_menu_active = False
+                running = False
+                credits_active = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if back_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                    credits_active = False
+
+        if credits_active:  
+            screen.fill('black')
+            screen.blit(credits_header_text, credits_header_rect)
+
+            if back_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                back_button_text = main_menu_font_p.render('BACK', False, 'black')
+                back_rect_col = 'white'
+            back_button_rect_to_display = pygame.Rect.inflate(back_button_rect, 15, 15)
+            back_button_rect_to_display = back_button_rect_to_display.move(0, -3)
+            
+            pygame.draw.rect(screen, back_rect_col, back_button_rect_to_display)
+            screen.blit(back_button_text, back_button_rect)
+
+            pygame.draw.rect(screen, 'white', credits_rect)
+
+            screen.blit(icon_surf, icon_rect)
+
+            x_coord = 50
+            y_coord = 200
+            for line in credits_lines:
+                text = credits_font.render(line, False, 'white')
+                rect = text.get_rect(midleft=(x_coord, y_coord))
+                screen.blit(text, rect)
+                y_coord += 50
+            
+            pygame.display.update()
+
+        
+        
+
         
 def game_menu():
     game_menu_active = True

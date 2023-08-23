@@ -20,6 +20,7 @@ main_menu_font_p = pygame.font.Font('assets/fonts/bit5x5.ttf', 50)
 main_menu_font_h = pygame.font.Font('assets/fonts/bit5x5.ttf', 140)
 credits_font = pygame.font.Font('assets/fonts/bit5x5.ttf', 30)
 credits_header_font = pygame.font.Font('assets/fonts/bit5x5.ttf', 70)
+pause_font = pygame.font.Font('assets/fonts/bit5x5.ttf', 13)
 
 # background setup
 background = pygame.image.load('assets/arts/background_1.png').convert()
@@ -307,7 +308,70 @@ def game_menu():
 
             pygame.display.update()
 
+def controls():
+    controls_active = True
+    global running
+
+    controls_header_text = credits_header_font.render('Controls', False, 'white')
+    controls_header_rect = controls_header_text.get_rect(midleft=(25, 90))
+
+    controls_rect = pygame.rect.Rect(25, 186, 15, 550)
+
+    controls_lines = [
+        'Paddle Movement:     W, S',
+        'Bounce-Boost:     Q or Spacebar',
+        'Pause:   P',
+        'Main Menu:     ESC'
+    ]
+
+    start_button_flash = pygame.USEREVENT + 3
+    pygame.time.set_timer(start_button_flash, 350)
+    flash_flag = False
+
+    random_text = random.choice(('GOT IT!', 'PLAY!', 'START!'))
+    while controls_active:
+
+        start_button_text = main_menu_font_p.render(random_text, False, 'white')
+        start_rect_col = 'black'
+        start_button_rect = start_button_text.get_rect(midleft=(60, 700))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                controls_active = False
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if start_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                    controls_active = False
+            if event.type == start_button_flash:
+                flash_flag = not flash_flag
+
+        if controls_active:  
+            screen.fill('black')
+            screen.blit(controls_header_text, controls_header_rect)
+
+            if start_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]) or flash_flag:
+                start_button_text = main_menu_font_p.render(random_text, False, 'black')
+                start_rect_col = 'white'
+            start_button_rect_to_display = pygame.Rect.inflate(start_button_rect, 15, 15)
+            start_button_rect_to_display = start_button_rect_to_display.move(0, -3)
+            
+            pygame.draw.rect(screen, start_rect_col, start_button_rect_to_display)
+            screen.blit(start_button_text, start_button_rect)
+
+            pygame.draw.rect(screen, 'white', controls_rect)
+
+            x_coord = 50
+            y_coord = 200
+            for line in controls_lines:
+                text = credits_font.render(line, False, 'white')
+                rect = text.get_rect(midleft=(x_coord, y_coord))
+                screen.blit(text, rect)
+                y_coord += 50
+            
+            pygame.display.update()
+
 main_menu()
+controls()
 # game loop
 while running:
     # game variables setup:
@@ -664,6 +728,10 @@ while running:
     screen.blit(ball_surf, ball_rect)
     if game_paused and show_pause_button:
         screen.blit(pause_surf, pause_rect)
+    if game_paused:
+        pause_info_text = pause_font.render('(click \'p\' to unpause)', False, 'white')
+        pause_info_rect = pause_info_text.get_rect(topright=(760, 15))
+        screen.blit(pause_info_text, pause_info_rect)
 
     pygame.display.update()
     

@@ -221,11 +221,7 @@ def credits():
                 y_coord += 50
             
             pygame.display.update()
-
-        
-        
-
-        
+       
 def game_menu():
     game_menu_active = True
     global running
@@ -246,6 +242,10 @@ def game_menu():
         exit_to_desktop_rect_col = 'black'
         exit_to_desktop_rect = exit_to_desktop_text.get_rect(midleft=(150, 400))
 
+        back_button_text = game_menu_font.render('BACK', False, 'white')
+        back_rect_col = 'black'
+        back_button_rect = back_button_text.get_rect(midleft=(60, 700))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_menu_active = False
@@ -265,6 +265,10 @@ def game_menu():
                 if exit_to_desktop_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
                     game_menu_active = False
                     running = False
+                if back_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                    game_menu_active = False
+                    game_paused = True
+                    pygame.time.set_timer(pause_event, 700)
         
         if game_menu_active:
             if restart_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
@@ -285,13 +289,21 @@ def game_menu():
             exit_to_desktop_rect_to_display = pygame.Rect.inflate(exit_to_desktop_rect, 15, 15)
             exit_to_desktop_rect_to_display = exit_to_desktop_rect_to_display.move(-5, -3)
 
+            if back_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                back_button_text = game_menu_font.render('BACK', False, 'black')
+                back_rect_col = 'white'
+            back_button_rect_to_display = pygame.Rect.inflate(back_button_rect, 15, 15)
+            back_button_rect_to_display = back_button_rect_to_display.move(0, -3)
+
             screen.fill('black')
             pygame.draw.rect(screen, restart_rect_col, restart_button_rect_to_display)
             pygame.draw.rect(screen, exit_to_main_menu_rect_col, exit_to_main_menu_rect_to_display)
             pygame.draw.rect(screen, exit_to_desktop_rect_col, exit_to_desktop_rect_to_display)
+            pygame.draw.rect(screen, back_rect_col, back_button_rect_to_display)
             screen.blit(restart_button_text, restart_button_rect)
             screen.blit(exit_to_main_menu_button_text, exit_to_main_menu_rect)
             screen.blit(exit_to_desktop_text, exit_to_desktop_rect)
+            screen.blit(back_button_text, back_button_rect)
 
             pygame.display.update()
 

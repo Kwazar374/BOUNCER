@@ -16,6 +16,8 @@ running = True
 score_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 120)
 bounce_counter_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 20)
 game_menu_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 60)
+main_menu_font_p = pygame.font.Font('assets/fonts/bit5x5.ttf', 50)
+main_menu_font_h = pygame.font.Font('assets/fonts/bit5x5.ttf', 150)
 
 # background setup
 background = pygame.image.load('assets/arts/background_1.png').convert()
@@ -79,19 +81,97 @@ def simulate_ball_trajectory(ball_rects, ball_dir, ball_ang, ball_sped):
                     ball_ang *= -1
                     last_wall_collision_counter = 0
         return ball_rects.centery
-    
+
+def main_menu():
+    main_menu_active = True
+    global running
+    global game_restart
+
+    main_menu_header_text = main_menu_font_h.render('PONG', False, 'white')
+    main_menu_header_rect = main_menu_header_text.get_rect(midleft=(40, 90))
+
+    main_menu_rect = pygame.rect.Rect(30, 195, 20, 260)
+
+    while main_menu_active:
+
+        play_button_text = main_menu_font_p.render('PLAY', False, 'white')
+        play_rect_col = 'black'
+        play_button_rect = play_button_text.get_rect(midleft=(70, 230))
+
+        credits_button_text = main_menu_font_p.render('CREDITS', False, 'white')
+        credits_rect_col = 'black'
+        credits_rect = credits_button_text.get_rect(midleft=(70, 310))
+
+        exit_button_text = main_menu_font_p.render('EXIT', False, 'white')
+        exit_rect_col = 'black'
+        exit_rect = exit_button_text.get_rect(midleft=(70, 400))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                main_menu_active = False
+                running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                main_menu_active = False
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if play_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                    main_menu_active = False
+                if credits_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                    pass
+                if exit_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                    main_menu_active = False
+                    running = False
+
+        if main_menu_active:
+            if play_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                play_button_text = main_menu_font_p.render('PLAY', False, 'black')
+                play_rect_col = 'white'
+            play_button_rect_to_display = pygame.Rect.inflate(play_button_rect, 15, 15)
+            play_button_rect_to_display = play_button_rect_to_display.move(0, -3)
+
+            if credits_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                credits_button_text = main_menu_font_p.render('CREDITS', False, 'black')
+                credits_rect_col = 'white'
+            credits_rect_to_display = pygame.Rect.inflate(credits_rect, 15, 15)
+            credits_rect_to_display = credits_rect_to_display.move(0, -3)
+
+            if exit_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                exit_button_text = main_menu_font_p.render('EXIT', False, 'black')
+                exit_rect_col = 'white'
+            exit_rect_to_display = pygame.Rect.inflate(exit_rect, 15, 15)
+            exit_rect_to_display = exit_rect_to_display.move(0, -3)
+
+            screen.fill('black')
+            pygame.draw.rect(screen, play_rect_col, play_button_rect_to_display)
+            pygame.draw.rect(screen, credits_rect_col, credits_rect_to_display)
+            pygame.draw.rect(screen, exit_rect_col, exit_rect_to_display)
+            pygame.draw.rect(screen, 'white', main_menu_rect)
+            screen.blit(main_menu_header_text, main_menu_header_rect)
+            screen.blit(play_button_text, play_button_rect)
+            screen.blit(credits_button_text, credits_rect)
+            screen.blit(exit_button_text, exit_rect)
+
+            pygame.display.update()
+        
 def game_menu():
     game_menu_active = True
     global running
     global game_paused
-    global round_active
     global game_restart
     
     while game_menu_active:
         
         restart_button_text = game_menu_font.render('RESTART', False, 'white')
         restart_rect_col = 'black'
-        restart_button_rect = restart_button_text.get_rect(midleft=(200, 250))
+        restart_button_rect = restart_button_text.get_rect(midleft=(150, 230))
+
+        exit_to_main_menu_button_text = game_menu_font.render('EXIT TO MAIN MENU', False, 'white')
+        exit_to_main_menu_rect_col = 'black'
+        exit_to_main_menu_rect = exit_to_main_menu_button_text.get_rect(midleft=(150, 310))
+
+        exit_to_desktop_text = game_menu_font.render('EXIT TO DESKTOP', False, 'white')
+        exit_to_desktop_rect_col = 'black'
+        exit_to_desktop_rect = exit_to_desktop_text.get_rect(midleft=(150, 400))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -105,20 +185,44 @@ def game_menu():
                 if restart_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
                     game_menu_active = False
                     game_restart = True
+                if exit_to_main_menu_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                    game_menu_active = False
+                    game_restart = True
+                    main_menu()
+                if exit_to_desktop_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                    game_menu_active = False
+                    running = False
         
+        if game_menu_active:
+            if restart_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                restart_button_text = game_menu_font.render('RESTART', False, 'black')
+                restart_rect_col = 'white'
+            restart_button_rect_to_display = pygame.Rect.inflate(restart_button_rect, 15, 15)
+            restart_button_rect_to_display = restart_button_rect_to_display.move(-5, -3)
 
-        if restart_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
-            restart_button_text = game_menu_font.render('RESTART', False, 'black')
-            restart_rect_col = 'white'
-        restart_button_rect_to_display = pygame.Rect.inflate(restart_button_rect, 15, 15)
-        restart_button_rect_to_display = restart_button_rect_to_display.move(-5, -3)
+            if exit_to_main_menu_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                exit_to_main_menu_button_text = game_menu_font.render('EXIT TO MAIN MENU', False, 'black')
+                exit_to_main_menu_rect_col = 'white'
+            exit_to_main_menu_rect_to_display = pygame.Rect.inflate(exit_to_main_menu_rect, 15, 15)
+            exit_to_main_menu_rect_to_display = exit_to_main_menu_rect_to_display.move(-5, -3)
 
-        screen.fill('black')
-        pygame.draw.rect(screen, restart_rect_col, restart_button_rect_to_display, )
-        screen.blit(restart_button_text, restart_button_rect)
+            if exit_to_desktop_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                exit_to_desktop_text = game_menu_font.render('EXIT TO DESKTOP', False, 'black')
+                exit_to_desktop_rect_col = 'white'
+            exit_to_desktop_rect_to_display = pygame.Rect.inflate(exit_to_desktop_rect, 15, 15)
+            exit_to_desktop_rect_to_display = exit_to_desktop_rect_to_display.move(-5, -3)
 
-        pygame.display.update()
+            screen.fill('black')
+            pygame.draw.rect(screen, restart_rect_col, restart_button_rect_to_display)
+            pygame.draw.rect(screen, exit_to_main_menu_rect_col, exit_to_main_menu_rect_to_display)
+            pygame.draw.rect(screen, exit_to_desktop_rect_col, exit_to_desktop_rect_to_display)
+            screen.blit(restart_button_text, restart_button_rect)
+            screen.blit(exit_to_main_menu_button_text, exit_to_main_menu_rect)
+            screen.blit(exit_to_desktop_text, exit_to_desktop_rect)
 
+            pygame.display.update()
+
+main_menu()
 # game loop
 while running:
     # game variables setup:

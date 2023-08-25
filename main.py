@@ -2,6 +2,8 @@ import pygame
 import random
 import math
 
+from pygame import mixer
+
 # pygame setup
 pygame.init()
 width, height = screen_size = (800, 800)
@@ -11,6 +13,9 @@ icon = pygame.image.load('assets/arts/iconB.png').convert()
 pygame.display.set_icon(icon)
 clock = pygame.time.Clock()
 running = True
+
+# SFX
+bounce_sfx = mixer.Sound('assets/music/bounce_sfx.ogg')
 
 # font setup
 score_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 120)
@@ -49,6 +54,15 @@ bounce_boost_frame = 0
 pause_surf = pygame.image.load('assets/arts/pause_button.png').convert()
 pause_rect = pause_surf.get_rect(topright=(795, 5))
 show_pause_button = True
+
+# sfx_on and sfx_off buttons setup
+sfx_on_surf = pygame.image.load('assets/arts/sfx_on.png').convert()
+sfx_on_surf = pygame.transform.scale_by(sfx_on_surf, (3, 3))
+sfx_off_surf = pygame.image.load('assets/arts/sfx_off.png').convert()
+sfx_off_surf = pygame.transform.scale_by(sfx_off_surf, (3, 3))
+sfx_off_rect = sfx_on_rect = sfx_on_surf.get_rect(center=(765, 40))
+
+sfx_active = True
 
 # game restart setup
 game_restart = True
@@ -228,6 +242,7 @@ def game_menu():
     global running
     global game_paused
     global game_restart
+    global sfx_active
     
     while game_menu_active:
         
@@ -270,6 +285,8 @@ def game_menu():
                     game_menu_active = False
                     game_paused = True
                     pygame.time.set_timer(pause_event, 700)
+                if sfx_on_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
+                    sfx_active = not sfx_active
         
         if game_menu_active:
             if restart_button_rect.collidepoint(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1]):
@@ -305,6 +322,10 @@ def game_menu():
             screen.blit(exit_to_main_menu_button_text, exit_to_main_menu_rect)
             screen.blit(exit_to_desktop_text, exit_to_desktop_rect)
             screen.blit(back_button_text, back_button_rect)
+            if sfx_active:
+                screen.blit(sfx_on_surf, sfx_on_rect)
+            else:
+                screen.blit(sfx_off_surf, sfx_off_rect)
 
             pygame.display.update()
 
@@ -637,6 +658,8 @@ while running:
             if ball_speed < 17:
                 ball_speed += 0.15
             bounce_counter += 1
+            if sfx_active:
+                bounce_sfx.play()
         # ball with enemy
         if enemy_rect.colliderect(ball_rect) == True:
             random_dest_set = False
@@ -679,6 +702,8 @@ while running:
             if ball_speed < 17:
                 ball_speed += 0.15
             bounce_counter += 1
+            if sfx_active:
+                bounce_sfx.play()
         # ball with walls
         if ball_rect.midtop[1] <= 0 or ball_rect.midbottom[1] >= height:
             if retro_mode_on:

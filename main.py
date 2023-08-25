@@ -24,6 +24,7 @@ game_menu_font = pygame.font.Font('assets/fonts/bit5x3.ttf', 60)
 main_menu_font_p = pygame.font.Font('assets/fonts/bit5x5.ttf', 50)
 main_menu_font_h = pygame.font.Font('assets/fonts/bit5x5.ttf', 140)
 credits_font = pygame.font.Font('assets/fonts/bit5x5.ttf', 30)
+credits_font_2 = pygame.font.Font('assets/fonts/bit5x5.ttf', 15)
 credits_header_font = pygame.font.Font('assets/fonts/bit5x5.ttf', 70)
 pause_font = pygame.font.Font('assets/fonts/bit5x5.ttf', 13)
 
@@ -192,7 +193,8 @@ def credits():
     credits_lines = [
         'Code, Art:     Kwazar374',
         'Fonts:     www.mattlag.com/bitfonts/',
-        'Inspiration:   Atari Pong from 1972'
+        'Inspiration:   Atari Pong from 1972',
+        'SFX:  www.opengameart.org/content/3-ping-pong-sounds-8-bit-style'
     ]
 
     while credits_active:
@@ -227,13 +229,19 @@ def credits():
 
             screen.blit(icon_surf, icon_rect)
 
-            x_coord = 50
+            x_coord = 60
             y_coord = 200
             for line in credits_lines:
-                text = credits_font.render(line, False, 'white')
+                if line[0:3] == 'SFX':
+                    text = credits_font_2.render(line, False, 'white')
+                else:
+                    text = credits_font.render(line, False, 'white')
                 rect = text.get_rect(midleft=(x_coord, y_coord))
                 screen.blit(text, rect)
-                y_coord += 50
+                if line[0:3] == 'Ins':
+                    y_coord += 40
+                else:
+                    y_coord += 50
             
             pygame.display.update()
        
@@ -339,10 +347,10 @@ def controls():
     controls_rect = pygame.rect.Rect(25, 186, 15, 550)
 
     controls_lines = [
-        'Paddle Movement:     W, S',
-        'Bounce-Boost:     Q or Spacebar',
-        'Pause:   P',
-        'Main Menu:     ESC'
+        'Paddle Movement:   W, S',
+        'Bounce-Boost:  Q or Spacebar',
+        'Pause:  P',
+        'Game Menu:  ESC'
     ]
 
     start_button_flash = pygame.USEREVENT + 3
@@ -392,7 +400,8 @@ def controls():
             pygame.display.update()
 
 main_menu()
-controls()
+if running:
+    controls()
 # game loop
 while running:
     # game variables setup:
